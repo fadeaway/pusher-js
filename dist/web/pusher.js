@@ -4371,45 +4371,10 @@ function validateOptions(options) {
     }
 }
 
-// CONCATENATED MODULE: ./src/core/auth/user_authenticator.ts
-
-
-var composeChannelQuery = function (params, authOptions) {
-    var query = 'socket_id=' + encodeURIComponent(params.socketId);
-    for (var key in authOptions.params) {
-        query +=
-            '&' +
-                encodeURIComponent(key) +
-                '=' +
-                encodeURIComponent(authOptions.params[key]);
-    }
-    if (authOptions.paramsProvider != null) {
-        var dynamicParams = authOptions.paramsProvider();
-        for (var key in dynamicParams) {
-            query +=
-                '&' +
-                    encodeURIComponent(key) +
-                    '=' +
-                    encodeURIComponent(dynamicParams[key]);
-        }
-    }
-    return query;
-};
-var UserAuthenticator = function (authOptions) {
-    if (typeof runtime.getAuthorizers()[authOptions.transport] === 'undefined') {
-        throw "'" + authOptions.transport + "' is not a recognized auth transport";
-    }
-    return function (params, callback) {
-        var query = composeChannelQuery(params, authOptions);
-        runtime.getAuthorizers()[authOptions.transport](runtime, query, authOptions, AuthRequestType.UserAuthentication, callback);
-    };
-};
-/* harmony default export */ var user_authenticator = (UserAuthenticator);
-
 // CONCATENATED MODULE: ./src/core/auth/channel_authorizer.ts
 
 
-var channel_authorizer_composeChannelQuery = function (params, authOptions) {
+var composeChannelQuery = function (params, authOptions) {
     var query = 'socket_id=' + encodeURIComponent(params.socketId);
     query += '&channel_name=' + encodeURIComponent(params.channelName);
     for (var key in authOptions.params) {
@@ -4436,7 +4401,7 @@ var ChannelAuthorizer = function (authOptions) {
         throw "'" + authOptions.transport + "' is not a recognized auth transport";
     }
     return function (params, callback) {
-        var query = channel_authorizer_composeChannelQuery(params, authOptions);
+        var query = composeChannelQuery(params, authOptions);
         runtime.getAuthorizers()[authOptions.transport](runtime, query, authOptions, AuthRequestType.ChannelAuthorization, callback);
     };
 };
@@ -4459,6 +4424,41 @@ var ChannelAuthorizerProxy = function (pusher, authOptions, channelAuthorizerGen
     };
 };
 
+// CONCATENATED MODULE: ./src/core/auth/user_authenticator.ts
+
+
+var user_authenticator_composeChannelQuery = function (params, authOptions) {
+    var query = 'socket_id=' + encodeURIComponent(params.socketId);
+    for (var key in authOptions.params) {
+        query +=
+            '&' +
+                encodeURIComponent(key) +
+                '=' +
+                encodeURIComponent(authOptions.params[key]);
+    }
+    if (authOptions.paramsProvider != null) {
+        var dynamicParams = authOptions.paramsProvider();
+        for (var key in dynamicParams) {
+            query +=
+                '&' +
+                    encodeURIComponent(key) +
+                    '=' +
+                    encodeURIComponent(dynamicParams[key]);
+        }
+    }
+    return query;
+};
+var UserAuthenticator = function (authOptions) {
+    if (typeof runtime.getAuthorizers()[authOptions.transport] === 'undefined') {
+        throw "'" + authOptions.transport + "' is not a recognized auth transport";
+    }
+    return function (params, callback) {
+        var query = user_authenticator_composeChannelQuery(params, authOptions);
+        runtime.getAuthorizers()[authOptions.transport](runtime, query, authOptions, AuthRequestType.UserAuthentication, callback);
+    };
+};
+/* harmony default export */ var user_authenticator = (UserAuthenticator);
+
 // CONCATENATED MODULE: ./src/core/config.ts
 var __assign = (undefined && undefined.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -4471,7 +4471,6 @@ var __assign = (undefined && undefined.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-
 
 
 
@@ -4528,10 +4527,7 @@ function getWebsocketHostFromCluster(cluster) {
     return "ws-" + cluster + ".pusher.com";
 }
 function shouldUseTLS(opts) {
-    if (runtime.getProtocol() === 'https:') {
-        return true;
-    }
-    else if (opts.forceTLS === false) {
+    if (opts.forceTLS === false) {
         return false;
     }
     return true;
