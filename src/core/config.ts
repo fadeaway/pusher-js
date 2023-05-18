@@ -1,15 +1,17 @@
-import { Options } from './options';
-import Defaults from './defaults';
+import * as nacl from 'tweetnacl';
+
 import {
   ChannelAuthorizationHandler,
-  UserAuthenticationHandler,
-  ChannelAuthorizationOptions
+  ChannelAuthorizationOptions,
+  UserAuthenticationHandler
 } from './auth/options';
-import UserAuthenticator from './auth/user_authenticator';
+
 import ChannelAuthorizer from './auth/channel_authorizer';
 import { ChannelAuthorizerProxy } from './auth/deprecated_channel_authorizer';
+import Defaults from './defaults';
+import { Options } from './options';
 import Runtime from 'runtime';
-import * as nacl from 'tweetnacl';
+import UserAuthenticator from './auth/user_authenticator';
 
 export type AuthTransport = 'ajax' | 'jsonp';
 export type Transport =
@@ -110,9 +112,7 @@ function getWebsocketHostFromCluster(cluster: string): string {
 }
 
 function shouldUseTLS(opts: Options): boolean {
-  if (Runtime.getProtocol() === 'https:') {
-    return true;
-  } else if (opts.forceTLS === false) {
+  if (opts.forceTLS === false) {
     return false;
   }
   return true;
